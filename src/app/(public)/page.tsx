@@ -91,8 +91,8 @@ console.log(images,'images')
 
         {!isLoading && !isError && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {categories.slice(0, gridLimit).map((cat: Category) => {
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {categories.slice(0, 4).map((cat: Category) => {
                 const cover = getCategoryCover(cat)
                 return (
                   <Link 
@@ -124,15 +124,16 @@ console.log(images,'images')
               })}
             </div>
 
-            {categories.length > gridLimit && (
+            {categories.length > 4 && (
               <div className="flex justify-center mt-8">
-                <Button 
-                  variant="secondary" 
-                  className="rounded-full px-6 py-2 bg-surface-card hover:bg-secondary-pressed text-ink font-bold transition-colors"
-                  onClick={() => setGridLimit(prev => prev + 10)}
-                >
-                  Xem thêm
-                </Button>
+                <Link href="/categories">
+                  <Button 
+                    variant="secondary" 
+                    className="rounded-full px-6 py-2 bg-surface-card hover:bg-secondary-pressed text-ink font-bold transition-colors"
+                  >
+                    Xem tất cả
+                  </Button>
+                </Link>
               </div>
             )}
           </>

@@ -41,10 +41,10 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
   // Follow
   const authorId = image?.uploadedById
   const { data: followStatusResponse } = useGetFollowStatus(authorId)
-  const isFollowing = followStatusResponse?.data?.isFollowing ?? false
+  const isFollowing = followStatusResponse?.isFollowing ?? false
   const { mutate: followUser, isPending: following } = useFollowUser()
   const { mutate: unfollowUser, isPending: unfollowing } = useUnfollowUser()
-
+  console.log(followStatusResponse,'followStatusResponse')
   // Comments
   const { data: commentsResponse, isLoading: loadingComments } = useGetComments(Number(id))
   const comments = commentsResponse?.data ?? []

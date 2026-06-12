@@ -6,9 +6,9 @@ export const useGetFollowStatus = (userId?: number) => {
   return useQuery({
     queryKey: ['followStatus', userId],
     queryFn: async () => {
-      if (!userId) return { data: { isFollowing: false } };
+      if (!userId) return { isFollowing: false };
       const response = await axiosClient.get<{ data: FollowStatusResponse }>(`/users/${userId}/follow-status`);
-      return response.data;
+      return response.data as unknown as FollowStatusResponse;
     },
     enabled: !!userId,
   });
