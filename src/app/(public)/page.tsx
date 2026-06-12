@@ -57,11 +57,11 @@ export default function Home() {
     }
     return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop"
   }
-
+console.log(images,'images')
   return (
     <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 mt-8 pb-16">
       {/* 2. Grid Section ("Duyệt theo danh mục") */}
-      <div className="mt-16">
+      <div className="mt-4 sm:mt-16">
         <h2 className="text-heading-xl text-ink font-bold mb-8 text-left">
           Duyệt theo danh mục
         </h2>
@@ -147,6 +147,7 @@ export default function Home() {
                 imageUrl={img.imageUrl}
                 category={img.category?.name}
                 categorySlug={img.category?.slug}
+                authorAvatar={img.uploadedBy?.avatar ?? undefined}
                 authorName={img.uploadedBy?.name}
                 width={img.width ?? 800}
                 height={img.height ?? 600}

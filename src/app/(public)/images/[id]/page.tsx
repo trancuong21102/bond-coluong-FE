@@ -1,5 +1,5 @@
 "use client"
-import { useGetPublicImageById, useGetPublicCategoryImages, type ImageModel } from "@/store/api"
+import { useGetPublicImageById, useGetPublicCategoryImages, type ImageModel, useGetSavedImageIds, useSaveImage, useUnsaveImage } from "@/store/api"
 import { notFound, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { ImageCard } from "@/components/pinterest/ImageCard"
 import MasonryGrid from "@/components/ui/grid"
 import { use } from "react"
+import useAuthStore from "@/lib/store/authStore"
+import { toast } from "sonner"
 
 export default function ImageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -14,11 +16,38 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
   const { data: response, isLoading, isError } = useGetPublicImageById(id)
   const image = response?.data
 
+  const { isAuthenticated } = useAuthStore()
+  const { data: savedIdsResponse } = useGetSavedImageIds({ enabled: isAuthenticated })
+  const savedIds = savedIdsResponse?.data ?? []
+  const isSaved = savedIds.includes(Number(id))
+
+  const { mutate: saveImage, isPending: saving } = useSaveImage()
+  const { mutate: unsaveImage, isPending: unsaving } = useUnsaveImage()
+
+  const handleSave = () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để lưu hình ảnh")
+      router.push("/login")
+      return
+    }
+
+    if (isSaved) {
+      unsaveImage(id, {
+        onSuccess: () => toast.success("Đã bỏ lưu ảnh"),
+        onError: () => toast.error("Không thể bỏ lưu ảnh"),
+      })
+    } else {
+      saveImage(id, {
+        onSuccess: () => toast.success("Lưu ảnh thành công"),
+        onError: () => toast.error("Không thể lưu ảnh"),
+      })
+    }
+  }
+
   // Fetch related images from the same category
   const categorySlug = image?.category?.slug ?? ""
   const { data: relatedResponse, isLoading: loadingRelated } = useGetPublicCategoryImages(categorySlug)
   const relatedImages = (relatedResponse?.data ?? []).filter((img: ImageModel) => img.id !== id)
-
   if (isError) notFound()
 
   return (
@@ -86,7 +115,14 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
                   </svg>
                 </button>
               </div>
-              <Button variant="primary" className="rounded-full px-6 font-bold">Lưu</Button>
+              <Button
+                variant={isSaved ? "secondary" : "primary"}
+                className="rounded-full px-6 font-bold"
+                onClick={handleSave}
+                disabled={saving || unsaving}
+              >
+                {isSaved ? "Đã lưu" : "Lưu"}
+              </Button>
             </div>
 
             {/* Title */}
@@ -166,6 +202,7 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
                   category={img.category?.name}
                   categorySlug={img.category?.slug}
                   authorName={img.uploadedBy?.name}
+                  authorAvatar={img.uploadedBy?.avatar ?? undefined}
                   width={img.width ?? 800}
                   height={img.height ?? 600}
                   sizes="(max-width: 768px) calc(100vw - 2rem), (max-width: 1024px) calc((100vw - 3rem) / 2), (max-width: 1280px) calc((100vw - 520px) / 3), calc((100vw - 560px) / 4)"

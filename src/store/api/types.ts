@@ -24,6 +24,7 @@ export interface ImageModel {
   description?: string;
   imageUrl: string;
   categoryId: number;
+  authorAvatar: string | null;
   category?: {
     id: number;
     name: string;
@@ -116,3 +117,15 @@ export interface AdminGetImagesQuery {
   categoryId?: string;
   uploadedById?: string;
 }
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  avatar?: File | null;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword?: string;
+  newPassword?: string;
+}
+

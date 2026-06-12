@@ -1,18 +1,36 @@
 "use client"
-import { useGetMyCategories, useCreateCategory, useDeleteCategory, useUpdateCategory, URL_IMAGE } from "@/store/api"
+import { useAdminGetAllCategories, useAdminCreateCategory, useAdminDeleteCategory, URL_IMAGE } from "@/store/api"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import useAuthStore from "@/lib/store/authStore"
 
-export default function MyCategoriesPage() {
-  const { data: response, isLoading, isError } = useGetMyCategories()
-  const categories = response?.data ?? []
-  const { mutate: createCategory, isPending: creating } = useCreateCategory()
-  const { mutate: deleteCategory } = useDeleteCategory()
+export default function ManageCategoriesPage() {
+  const user = useAuthStore(state => state.user)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (user && user.role !== "ADMIN") {
+      router.push("/dashboard")
+    }
+  }, [user, router])
+
+  const { data: categories = [], isLoading, isError } = useAdminGetAllCategories()
+  const { mutate: createCategory, isPending: creating } = useAdminCreateCategory()
+  const { mutate: deleteCategory } = useAdminDeleteCategory()
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [coverImage, setCoverImage] = useState<File | null>(null)
+
+  if (!user || user.role !== "ADMIN") {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-body-md text-mute">Checking authorization...</p>
+      </div>
+    )
+  }
 
   const handleCreate = () => {
     if (!name.trim()) return
@@ -39,7 +57,7 @@ export default function MyCategoriesPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-heading-xl text-ink font-bold">My Categories</h1>
+        <h1 className="text-heading-xl text-ink font-bold">Manage Categories</h1>
         <Button variant="primary" onClick={() => setShowForm(v => !v)}>
           {showForm ? "Cancel" : "Create Category"}
         </Button>
@@ -53,7 +71,7 @@ export default function MyCategoriesPage() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Category name"
-              className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:ring-4 focus:ring-focus-outer"
+              className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:border-primary"
             />
           </div>
           <div>
@@ -62,7 +80,7 @@ export default function MyCategoriesPage() {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Optional description"
-              className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:ring-4 focus:ring-focus-outer"
+              className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:border-primary"
             />
           </div>
           <div>

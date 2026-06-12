@@ -2,11 +2,12 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Check, ChevronDown } from "lucide-react"
+import { Check, ChevronDown, Sun, Moon, LayoutDashboard, User, LogOut } from "lucide-react"
 import { SearchBar } from "@/components/pinterest/SearchBar"
 import { Button } from "@/components/ui/button"
 import useAuthStore from "@/lib/store/authStore"
 import { cn } from "@/lib/utils"
+import { useTheme } from "@/lib/hooks/useTheme"
 
 function UserAvatar({
   name,
@@ -34,8 +35,14 @@ function UserAvatar({
 
 export function PublicHeader() {
   const { isAuthenticated, user, logout } = useAuthStore()
+  const { isDark, toggleTheme } = useTheme()
   const [isAccountOpen, setIsAccountOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   React.useEffect(() => {
     if (!isAccountOpen) return
@@ -69,7 +76,7 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-50 w-full bg-canvas px-4 h-20 flex items-center gap-4">
       <Link href="/" className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-xl leading-none">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl leading-none">
           P
         </div>
       </Link>
@@ -85,7 +92,15 @@ export function PublicHeader() {
       </div>
 
       <div className="flex items-center gap-3">
-        {isAuthenticated ? (
+        <button
+          onClick={toggleTheme}
+          className="rounded-full p-2 text-ink transition-colors hover:bg-surface-card focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus-outer cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+
+        {mounted && isAuthenticated ? (
           <div ref={menuRef} className="relative">
             <button
               type="button"
@@ -121,17 +136,28 @@ export function PublicHeader() {
                 <Link
                   href="/dashboard"
                   onClick={() => setIsAccountOpen(false)}
-                  className="mt-3 block w-full text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
+                  className="mt-3 flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
                 >
-                  Trang quản trị
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Trang quản trị</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setIsAccountOpen(false)}
+                  className="mt-3 flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Chỉnh sửa hồ sơ</span>
                 </Link>
 
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mt-3 block w-full text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
+                  className="mt-3 flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary cursor-pointer"
                 >
-                  Đăng xuất
+                  <LogOut className="h-4 w-4" />
+                  <span>Đăng xuất</span>
                 </button>
               </div>
             )}
@@ -139,10 +165,10 @@ export function PublicHeader() {
         ) : (
           <>
             <Link href="/login">
-              <Button variant="secondary" className="hidden sm:flex">Log in</Button>
+              <Button variant="primary" className="hidden sm:flex bg-[#e60023]">Log in</Button>
             </Link>
             <Link href="/register">
-              <Button variant="primary">Sign up</Button>
+              <Button variant="secondary">Sign up</Button>
             </Link>
           </>
         )}

@@ -31,6 +31,22 @@ const userImagesApi = {
   
   deleteImage: (id: string) => {
     return axiosClient.delete<any, { success: boolean }>(`/images/${id}`);
+  },
+
+  getSavedImages: () => {
+    return axiosClient.get<any, { success: boolean; message: string; data: ImageModel[] }>('/images/saved');
+  },
+
+  getSavedImageIds: () => {
+    return axiosClient.get<any, { success: boolean; message: string; data: number[] }>('/images/saved/ids');
+  },
+
+  saveImage: (id: string | number) => {
+    return axiosClient.post<any, { success: boolean; message: string }>(`/images/${id}/save`);
+  },
+
+  unsaveImage: (id: string | number) => {
+    return axiosClient.delete<any, { success: boolean; message: string }>(`/images/${id}/save`);
   }
 };
 
@@ -60,6 +76,43 @@ export const useDeleteImage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my', 'images'] });
       queryClient.invalidateQueries({ queryKey: ['public', 'images'] });
+    },
+  });
+};
+
+export const useGetSavedImages = () => {
+  return useQuery({
+    queryKey: ['saved', 'images'],
+    queryFn: userImagesApi.getSavedImages,
+  });
+};
+
+export const useGetSavedImageIds = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: ['saved', 'image-ids'],
+    queryFn: userImagesApi.getSavedImageIds,
+    ...options,
+  });
+};
+
+export const useSaveImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userImagesApi.saveImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved', 'images'] });
+      queryClient.invalidateQueries({ queryKey: ['saved', 'image-ids'] });
+    },
+  });
+};
+
+export const useUnsaveImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userImagesApi.unsaveImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved', 'images'] });
+      queryClient.invalidateQueries({ queryKey: ['saved', 'image-ids'] });
     },
   });
 };

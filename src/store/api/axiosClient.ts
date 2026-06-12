@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Get base URL from env or use default
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8386/api';
-export const URL_IMAGE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8386';
+const baseURL = "https://bond-coluong-api.onrender.com";
+export const URL_IMAGE = "https://bond-coluong-api.onrender.com";
 export const axiosClient = axios.create({
   baseURL,
   headers: {

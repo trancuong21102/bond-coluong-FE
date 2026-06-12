@@ -11,7 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:bg-[var(--color-primary-pressed)]",
+          "bg-[#e60023] text-white hover:bg-[#cc001f]",
         secondary:
           "bg-[var(--color-secondary-bg)] text-[var(--color-on-secondary)] hover:bg-[var(--color-secondary-pressed)]",
         tertiary:

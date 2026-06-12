@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useRegister } from "@/store/api"
+import { Eye, EyeOff } from "lucide-react"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -21,6 +23,8 @@ const registerSchema = z.object({
 export function RegisterForm() {
   const router = useRouter()
   const { mutate: registerMutate, isPending } = useRegister()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema)
@@ -52,15 +56,43 @@ export function RegisterForm() {
       </div>
       <div>
         <label className="text-body-strong mb-1 block text-ink">Password</label>
-        <Input type="password" placeholder="Create a password" {...register("password")} />
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Create a password"
+            className="pr-12"
+            {...register("password")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-ash hover:text-ink focus:outline-none cursor-pointer"
+          >
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
         {errors.password && <p className="text-error text-caption-sm mt-1">{errors.password.message}</p>}
       </div>
       <div>
         <label className="text-body-strong mb-1 block text-ink">Confirm Password</label>
-        <Input type="password" placeholder="Confirm password" {...register("confirmPassword")} />
+        <div className="relative">
+          <Input
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Confirm password"
+            className="pr-12"
+            {...register("confirmPassword")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(v => !v)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-ash hover:text-ink focus:outline-none cursor-pointer"
+          >
+            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          </button>
+        </div>
         {errors.confirmPassword && <p className="text-error text-caption-sm mt-1">{errors.confirmPassword.message}</p>}
       </div>
-      <Button type="submit" variant="primary" className="w-full mt-4" disabled={isPending}>
+      <Button type="submit" variant="primary" className="w-full mt-4 bg-[#e60023] hover:bg-[#e60023]/80" disabled={isPending}>
         {isPending ? "Signing up..." : "Sign up"}
       </Button>
     </form>

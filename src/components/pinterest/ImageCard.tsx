@@ -3,6 +3,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import useAuthStore from "@/lib/store/authStore"
+import { useGetSavedImageIds, useSaveImage, useUnsaveImage } from "@/store/api"
+import { toast } from "sonner"
 
 export interface ImageCardProps {
   id: string
@@ -33,6 +37,40 @@ export function ImageCard({
   sizes = masonryImageSizes,
   className,
 }: ImageCardProps) {
+
+  console.log(authorAvatar,'authorAvatar')
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
+  const { data: savedIdsResponse } = useGetSavedImageIds({ enabled: isAuthenticated })
+  const savedIds = savedIdsResponse?.data ?? []
+  const isSaved = savedIds.includes(Number(id))
+
+  const { mutate: saveImage, isPending: saving } = useSaveImage()
+  const { mutate: unsaveImage, isPending: unsaving } = useUnsaveImage()
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để lưu hình ảnh")
+      router.push("/login")
+      return
+    }
+
+    if (isSaved) {
+      unsaveImage(id, {
+        onSuccess: () => toast.success("Đã bỏ lưu ảnh"),
+        onError: () => toast.error("Không thể bỏ lưu ảnh"),
+      })
+    } else {
+      saveImage(id, {
+        onSuccess: () => toast.success("Lưu ảnh thành công"),
+        onError: () => toast.error("Không thể lưu ảnh"),
+      })
+    }
+  }
+
   return (
     <div className={cn("group relative mb-sm break-inside-avoid", className)}>
       <div className="relative overflow-hidden rounded-[16px] bg-surface-card">
@@ -49,7 +87,14 @@ export function ImageCard({
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex flex-col justify-between p-4">
           <div className="flex justify-end">
-            <Button variant="primary" className="rounded-full">Save</Button>
+            <Button
+              variant={isSaved ? "secondary" : "primary"}
+              className="relative z-10 rounded-full select-none font-bold"
+              onClick={handleSave}
+              disabled={saving || unsaving}
+            >
+              {isSaved ? "Đã lưu" : "Lưu"}
+            </Button>
           </div>
           <div className="flex justify-between items-end">
             {category && (

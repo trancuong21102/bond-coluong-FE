@@ -1,5 +1,5 @@
 "use client"
-import { useGetMyCategories, useUploadImage, type Category } from "@/store/api"
+import { useGetPublicCategories, useUploadImage, type Category } from "@/store/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
@@ -21,7 +21,7 @@ export default function UploadImagePage() {
   const router = useRouter()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const { data: response } = useGetMyCategories()
+  const { data: response } = useGetPublicCategories()
   const categories = response?.data ?? []
   const { mutate: upload, isPending } = useUploadImage()
 
@@ -99,7 +99,7 @@ export default function UploadImagePage() {
             <div>
               <label className="text-body-strong mb-1 block text-ink">Description</label>
               <textarea
-                className="w-full rounded-[16px] border border-ash bg-canvas px-4 py-3 text-body-md text-ink placeholder:text-ash focus:outline-none focus:ring-4 focus:ring-focus-outer min-h-[120px] resize-none"
+                className="w-full rounded-[16px] border border-ash bg-canvas px-4 py-3 text-body-md text-ink placeholder:text-ash focus:outline-none focus:border-primary min-h-[120px] resize-none"
                 placeholder="Tell everyone what your Pin is about"
                 {...register("description")}
               />
@@ -108,7 +108,7 @@ export default function UploadImagePage() {
             <div>
               <label className="text-body-strong mb-1 block text-ink">Category</label>
               <select
-                className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:ring-4 focus:ring-focus-outer"
+                className="w-full h-11 rounded-[16px] border border-ash bg-canvas px-4 text-body-md text-ink focus:outline-none focus:border-primary"
                 {...register("categoryId")}
               >
                 <option value="">Select a category</option>
