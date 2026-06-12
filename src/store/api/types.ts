@@ -5,6 +5,11 @@ export interface User {
   role: 'ADMIN' | 'USER';
   avatar?: string;
   uploads?: number;
+  _count?: {
+    followers: number;
+    following: number;
+    images: number;
+  };
 }
 
 export interface Category {
@@ -40,6 +45,24 @@ export interface ImageModel {
   height: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejectReason?: string;
+}
+
+export interface CommentModel {
+  id: number;
+  content: string;
+  userId: number;
+  imageId: number;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: number;
+    name: string;
+    avatar: string | null;
+  };
+}
+
+export interface FollowStatusResponse {
+  isFollowing: boolean;
 }
 
 // Responses

@@ -5,3 +5,5 @@ export * from './public';
 export * from './userCategories';
 export * from './userImages';
 export * from './admin';
+export * from './follows';
+export * from './comments';

@@ -46,6 +46,7 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ slug:
               title={img.title}
               imageUrl={img.imageUrl}
               category={category?.name}
+              authorAvatar={img.uploadedBy?.avatar ?? undefined}
               categorySlug={slug}
               authorName={img.uploadedBy?.name}
               width={img.width ?? 800}

@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { toast } from "sonner"
 import Link from "next/link"
-import { Upload, Pencil, MoreHorizontal } from "lucide-react"
+import { Trash2 } from "lucide-react"
 
 type StatusFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED"
 
 export default function MyImagesPage() {
   const [filter, setFilter] = useState<StatusFilter>("ALL")
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [activeImage, setActiveImage] = useState<string | number | null>(null)
   const { data: response, isLoading, isError } = useGetMyImages()
   const { mutate: deleteImage, isPending: deleting } = useDeleteImage()
 
@@ -26,10 +27,7 @@ export default function MyImagesPage() {
     })
   }
 
-  const handleShare = (url: string) => {
-    navigator.clipboard.writeText(url)
-    toast.success("Image link copied to clipboard!")
-  }
+
 
   const statusColor: Record<ImageModel["status"], string> = {
     APPROVED: "bg-success-pale text-success-deep",
@@ -77,10 +75,16 @@ export default function MyImagesPage() {
           {filtered.map((img: ImageModel) => (
             <div
               key={img.id}
-              className="bg-surface-card rounded-[32px] overflow-hidden group relative aspect-[3/4] border border-hairline shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-surface-card rounded-[32px] overflow-hidden group relative aspect-[3/4] border border-hairline shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
               onMouseLeave={() => {
                 if (activeMenu === img.id) {
                   setActiveMenu(null)
+                }
+                setActiveImage(null)
+              }}
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  setActiveImage(activeImage === img.id ? null : img.id)
                 }
               }}
             >
@@ -98,63 +102,25 @@ export default function MyImagesPage() {
               </div>
 
               {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-5 z-10">
+              <div className={`absolute inset-0 bg-black/40 transition-opacity duration-200 flex flex-col justify-between p-5 z-10 ${activeImage === img.id ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`}>
                 {/* Title at the top */}
                 <div className="text-on-dark text-body-strong font-bold truncate mt-8 pr-2">
                   {img.title}
                 </div>
 
                 {/* Circular Action Buttons at the bottom */}
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => handleShare(img.imageUrl)}
-                    className="w-9 h-9 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center text-black shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                    title="Copy Image URL"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(img.id)
+                    }}
+                    disabled={deleting}
+                    className="w-10 h-10 rounded-full bg-white hover:bg-error hover:text-white flex items-center justify-center text-error shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                    title="Delete Image"
                   >
-                    <Upload className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
-
-                  <button
-                    onClick={() => toast.info("Edit feature coming soon!")}
-                    className="w-9 h-9 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center text-black shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                    title="Edit Image"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-
-                  <div className="relative">
-                    <button
-                      onClick={() => setActiveMenu(activeMenu === img.id ? null : img.id)}
-                      className="w-9 h-9 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center text-black shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                      title="More options"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-
-                    {activeMenu === img.id && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-20 cursor-default"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setActiveMenu(null)
-                          }}
-                        />
-                        <div className="absolute bottom-11 right-0 bg-canvas border border-hairline rounded-[16px] shadow-lg p-1.5 z-30 min-w-[100px] animate-in fade-in slide-in-from-bottom-2 duration-150">
-                          <button
-                            onClick={() => {
-                              handleDelete(img.id)
-                              setActiveMenu(null)
-                            }}
-                            disabled={deleting}
-                            className="w-full text-left text-body-sm-strong text-error hover:bg-surface-soft px-3 py-2 rounded-lg transition-colors cursor-pointer"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>

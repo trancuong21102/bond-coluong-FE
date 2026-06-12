@@ -20,6 +20,9 @@ import { useRouter } from "next/navigation"
 import { useTheme } from "@/lib/hooks/useTheme"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import type { User } from "@/lib/store/authStore"
+
 interface SidebarContentProps {
   pathname: string
   sidebarLinks: Array<{ name: string; href: string; icon: React.ComponentType<any> }>
@@ -27,6 +30,7 @@ interface SidebarContentProps {
   toggleTheme: () => void
   handleLogout: () => void
   onLinkClick?: () => void
+  user: User | null
 }
 
 function SidebarContent({
@@ -36,10 +40,11 @@ function SidebarContent({
   toggleTheme,
   handleLogout,
   onLinkClick,
+  user,
 }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full justify-between">
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {sidebarLinks.map((link) => {
           const isActive = pathname === link.href
           const Icon = link.icon
@@ -63,6 +68,20 @@ function SidebarContent({
       </nav>
 
       <div className="p-4 border-t border-hairline space-y-2">
+        {user && (
+          <div className="flex items-center gap-3 px-3 py-3 mb-2 rounded-[16px] bg-surface-soft border border-hairline">
+            <Avatar className="w-10 h-10 border border-hairline shrink-0">
+              <AvatarImage src={user.avatar || ""} />
+              <AvatarFallback className="bg-surface-card text-body-strong font-bold text-ash">
+                {user.name?.charAt(0) ?? "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-body-sm font-bold text-ink truncate">{user.name}</p>
+              <p className="text-caption-sm text-mute truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
         <button
           onClick={() => {
             toggleTheme()
@@ -101,13 +120,11 @@ export function DashboardSidebar() {
       { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     ]
 
-    if (user?.role === "ADMIN") {
-      links.push({
-        name: "Manage Categories",
-        href: "/dashboard/categories",
-        icon: Folder,
-      })
-    }
+    links.push({
+      name: user?.role === "ADMIN" ? "Manage Categories" : "Categories",
+      href: "/dashboard/categories",
+      icon: Folder,
+    })
 
     links.push(
       { name: "My Images", href: "/dashboard/images", icon: ImageIcon },
@@ -158,6 +175,7 @@ export function DashboardSidebar() {
                   toggleTheme={toggleTheme}
                   handleLogout={handleLogout}
                   onLinkClick={() => setIsOpen(false)}
+                  user={user}
                 />
               </div>
             </SheetContent>
@@ -183,6 +201,7 @@ export function DashboardSidebar() {
           isDark={isDark}
           toggleTheme={toggleTheme}
           handleLogout={handleLogout}
+          user={user}
         />
       </aside>
     </>

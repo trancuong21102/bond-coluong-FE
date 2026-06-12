@@ -133,23 +133,24 @@ export function PublicHeader() {
 
                 <p className="mt-5 text-caption-md text-mute">Tài khoản của bạn</p>
 
-                <Link
-                  href="/dashboard"
-                  onClick={() => setIsAccountOpen(false)}
-                  className="mt-3 flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Trang quản trị</span>
-                </Link>
-
-                <Link
-                  href="/dashboard/profile"
-                  onClick={() => setIsAccountOpen(false)}
-                  className="mt-3 flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Chỉnh sửa hồ sơ</span>
-                </Link>
+                <div className="flex flex-col gap-4 mt-3">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsAccountOpen(false)}
+                    className="flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Trang quản trị</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/profile"
+                    onClick={() => setIsAccountOpen(false)}
+                    className="flex w-full items-center gap-2 text-left text-body-strong font-bold text-ink transition-colors hover:text-primary"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Chỉnh sửa hồ sơ</span>
+                  </Link>
+                </div>
 
                 <button
                   type="button"

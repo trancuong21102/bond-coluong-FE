@@ -1,14 +1,28 @@
 "use client"
-import { useGetPublicImageById, useGetPublicCategoryImages, type ImageModel, useGetSavedImageIds, useSaveImage, useUnsaveImage } from "@/store/api"
+import {
+  useGetPublicImageById,
+  useGetPublicCategoryImages,
+  type ImageModel,
+  useGetSavedImageIds,
+  useSaveImage,
+  useUnsaveImage,
+  useGetFollowStatus,
+  useFollowUser,
+  useUnfollowUser,
+  useGetComments,
+  useCreateComment,
+  useDeleteComment
+} from "@/store/api"
 import { notFound, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ImageCard } from "@/components/pinterest/ImageCard"
 import MasonryGrid from "@/components/ui/grid"
-import { use } from "react"
+import { use, useState } from "react"
 import useAuthStore from "@/lib/store/authStore"
 import { toast } from "sonner"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function ImageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -24,6 +38,20 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
   const { mutate: saveImage, isPending: saving } = useSaveImage()
   const { mutate: unsaveImage, isPending: unsaving } = useUnsaveImage()
 
+  // Follow
+  const authorId = image?.uploadedById
+  const { data: followStatusResponse } = useGetFollowStatus(authorId)
+  const isFollowing = followStatusResponse?.data?.isFollowing ?? false
+  const { mutate: followUser, isPending: following } = useFollowUser()
+  const { mutate: unfollowUser, isPending: unfollowing } = useUnfollowUser()
+
+  // Comments
+  const { data: commentsResponse, isLoading: loadingComments } = useGetComments(Number(id))
+  const comments = commentsResponse?.data ?? []
+  const { mutate: createComment, isPending: commenting } = useCreateComment()
+  const { mutate: deleteComment, isPending: deletingComment } = useDeleteComment()
+  const [commentText, setCommentText] = useState("")
+  const { user } = useAuthStore()
   const handleSave = () => {
     if (!isAuthenticated) {
       toast.error("Vui lòng đăng nhập để lưu hình ảnh")
@@ -44,6 +72,58 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
     }
   }
 
+  const handleFollowToggle = () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để theo dõi")
+      router.push("/login")
+      return
+    }
+    if (!authorId) return
+
+    if (isFollowing) {
+      unfollowUser(authorId, {
+        onSuccess: () => toast.success("Đã bỏ theo dõi"),
+        onError: () => toast.error("Không thể bỏ theo dõi"),
+      })
+    } else {
+      followUser(authorId, {
+        onSuccess: () => toast.success("Đã theo dõi"),
+        onError: () => toast.error("Không thể theo dõi"),
+      })
+    }
+  }
+
+  const handlePostComment = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để bình luận")
+      router.push("/login")
+      return
+    }
+    if (!commentText.trim()) return
+
+    createComment(
+      { imageId: Number(id), content: commentText },
+      {
+        onSuccess: () => {
+          setCommentText("")
+        },
+        onError: () => {
+          toast.error("Không thể đăng bình luận")
+        },
+      }
+    )
+  }
+
+  const handleDeleteComment = (commentId: number) => {
+    if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+      deleteComment(commentId, {
+        onSuccess: () => toast.success("Đã xóa bình luận"),
+        onError: () => toast.error("Không thể xóa bình luận"),
+      })
+    }
+  }
+
   // Fetch related images from the same category
   const categorySlug = image?.category?.slug ?? ""
   const { data: relatedResponse, isLoading: loadingRelated } = useGetPublicCategoryImages(categorySlug)
@@ -53,7 +133,7 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <main className="flex-1 flex flex-col md:flex-row min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)]">
       {/* ── Left Panel: fixed, scrollable ── */}
-      <div className="w-full md:w-[420px] lg:w-[480px] shrink-0 md:h-full md:overflow-y-auto border-b md:border-b-0 md:border-r border-hairline bg-canvas">
+      <div className="w-full md:w-[480px] lg:w-[600px] shrink-0 md:h-full md:overflow-y-auto border-b md:border-b-0 md:border-r border-hairline bg-canvas">
         {/* Back button */}
         <div className="sticky top-0 z-10 bg-canvas/80 backdrop-blur-sm px-4 pt-4 pb-2">
           <button
@@ -83,7 +163,7 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
                 alt={image.title}
                 width={image.width ?? 800}
                 height={image.height ?? 600}
-                sizes="(max-width: 768px) calc(100vw - 2rem), (max-width: 1024px) 420px, 480px"
+                sizes="(max-width: 768px) calc(100vw - 2rem), (max-width: 1024px) 480px, 600px"
                 className="w-full h-auto object-cover"
                 priority
               />
@@ -143,31 +223,113 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
             )}
 
             {/* Author */}
-            <div className="flex items-center justify-between pt-4 border-t border-hairline">
+            <div className="flex  flex-col justify-between pt-4 border-t border-hairline">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-surface-card border border-hairline flex items-center justify-center text-body-strong font-bold text-ash">
-                  {image.uploadedBy?.name?.charAt(0) ?? "?"}
-                </div>
+              <div className="flex items-center gap-3">
+                <Avatar className="w-11 h-11 border border-hairline">
+                  <AvatarImage src={image.uploadedBy?.avatar ?? ""} />
+                  <AvatarFallback className="bg-surface-card text-body-strong font-bold text-ash">
+                    {image.uploadedBy?.name?.charAt(0) ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="text-body-strong text-ink">{image.uploadedBy?.name}</p>
                   <p className="text-caption-sm text-mute">Tác giả</p>
                 </div>
               </div>
-              <Button variant="secondary" className="rounded-full text-body-sm font-bold">Theo dõi</Button>
+              {user?.id !== authorId && (
+                <Button 
+                  variant={isFollowing ? "secondary" : "primary"} 
+                  className="rounded-full text-body-sm font-bold"
+                  onClick={handleFollowToggle}
+                  disabled={following || unfollowing}
+                >
+                  {isFollowing ? "Đã theo dõi" : "Theo dõi"}
+                </Button>
+              )}
             </div>
 
-            {/* Comment placeholder */}
-            <div className="mt-6 pt-5 border-t border-hairline">
-              <p className="text-body-sm text-mute mb-3 font-medium">Thêm một nhận xét để bắt đầu cuộc trò chuyện</p>
-              <div className="flex items-center gap-2 bg-surface-soft rounded-full px-4 py-2.5 border border-hairline">
-                <div className="w-7 h-7 rounded-full bg-surface-card border border-hairline flex items-center justify-center text-caption-sm font-bold text-ash shrink-0">?</div>
+            {/* Comments List */}
+            <div className="mt-6">
+              <h3 className="text-body-strong text-ink font-bold mb-4">{comments.length} Nhận xét</h3>
+              {loadingComments ? (
+                <div className="animate-pulse flex gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-surface-card"></div>
+                  <div className="flex-1 h-10 bg-surface-card rounded-md"></div>
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3 group">
+                      <Avatar className="w-8 h-8 border border-hairline shrink-0">
+                        <AvatarImage src={comment.user?.avatar ?? ""} />
+                        <AvatarFallback className="bg-surface-card text-caption-sm font-bold">
+                          {comment.user?.name?.charAt(0) ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-body-sm font-bold text-ink">{comment.user?.name}</span>
+                          <span className="text-caption-sm text-mute">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-body-sm text-ink mt-0.5">{comment.content}</p>
+                      </div>
+                      {(user?.id === comment.userId || user?.role === 'ADMIN') && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="opacity-0 group-hover:opacity-100 text-mute hover:text-red-500 transition-opacity p-1 h-fit"
+                          title="Xóa bình luận"
+                          disabled={deletingComment}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-body-sm text-mute mb-3 font-medium">Chưa có nhận xét nào. Hãy là người đầu tiên nhận xét!</p>
+              )}
+            </div>
+
+            {/* Comment placeholder / Input */}
+            <div className="mt-4 pt-4 border-t border-hairline sticky bottom-0 bg-canvas/90 backdrop-blur-sm z-10">
+              <form onSubmit={handlePostComment} className="flex items-center gap-2 bg-surface-soft rounded-full px-4 py-2 border border-hairline focus-within:border-primary-base focus-within:ring-1 focus-within:ring-primary-base transition-all">
+                <Avatar className="w-8 h-8 shrink-0">
+                  <AvatarImage src={user?.avatar ?? ""} />
+                  <AvatarFallback className="bg-surface-card border border-hairline text-caption-sm font-bold">
+                    {user?.name?.charAt(0) ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
                 <input
                   type="text"
                   placeholder="Thêm nhận xét..."
-                  className="flex-1 bg-transparent text-body-sm text-ink outline-none placeholder:text-mute"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  disabled={commenting}
+                  className="flex-1 bg-transparent text-body-sm text-ink outline-none placeholder:text-mute disabled:opacity-50"
                 />
-              </div>
+                {commentText.trim() && (
+                  <button 
+                    type="submit" 
+                    disabled={commenting}
+                    className="p-1 text-primary-base hover:text-primary-hover disabled:opacity-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                )}
+              </form>
             </div>
+          </div>
           </div>
         )}
       </div>
