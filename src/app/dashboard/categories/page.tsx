@@ -16,16 +16,18 @@ function AdminCategories() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [coverImage, setCoverImage] = useState<File | null>(null)
+  const [isPublic, setIsPublic] = useState(true)
 
   const handleCreate = () => {
     if (!name.trim()) return
-    createCategory({ name, description, isPublic: true, coverImage }, {
+    createCategory({ name, description, isPublic, coverImage }, {
       onSuccess: () => {
         toast.success("Category created!")
         setShowForm(false)
         setName("")
         setDescription("")
         setCoverImage(null)
+        setIsPublic(true)
       },
       onError: (err: any) => toast.error(err?.message || "Failed to create category"),
     })
@@ -69,13 +71,60 @@ function AdminCategories() {
             />
           </div>
           <div>
-            <label className="text-body-strong block mb-1">Cover Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={e => setCoverImage(e.target.files?.[0] || null)}
-              className="w-full text-body-md text-ink file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-body-sm-strong file:bg-surface-card file:text-ink hover:file:bg-secondary-pressed cursor-pointer"
-            />
+            <label className="text-body-strong block mb-2">Cover Image</label>
+            <div className="relative border-2 border-dashed border-ash rounded-[16px] hover:border-[#e60023] transition-colors overflow-hidden bg-canvas h-48 flex items-center justify-center cursor-pointer group">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setCoverImage(e.target.files?.[0] || null)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              {coverImage ? (
+                <img 
+                  src={URL.createObjectURL(coverImage)} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-surface-card group-hover:bg-[#e60023]/10 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mute group-hover:text-[#e60023] transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </div>
+                  <p className="text-body-strong text-ink">Click or drag and drop</p>
+                  <p className="text-caption-sm text-mute mt-1">SVG, PNG, JPG or GIF</p>
+                </div>
+              )}
+            </div>
+            {coverImage && (
+              <button 
+                type="button" 
+                onClick={() => setCoverImage(null)} 
+                className="mt-2 text-caption-md font-bold text-[#e60023] hover:underline"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => setIsPublic(!isPublic)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isPublic ? "bg-[#e60023]" : "bg-ash"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isPublic ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <div>
+              <span className="text-body-strong block">{isPublic ? "Public" : "Private"}</span>
+              <span className="text-caption-sm text-mute">
+                {isPublic ? "Everyone can view images in this category" : "Requires approval to view"}
+              </span>
+            </div>
           </div>
           <div className="flex justify-end">
             <Button variant="primary" onClick={handleCreate} disabled={creating}>
@@ -175,16 +224,18 @@ function UserCategories() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [coverImage, setCoverImage] = useState<File | null>(null)
+  const [isPublic, setIsPublic] = useState(true)
 
   const handleCreate = () => {
     if (!name.trim()) return
-    createCategory({ name, description, isPublic: true, coverImage }, {
+    createCategory({ name, description, isPublic, coverImage }, {
       onSuccess: () => {
         toast.success("Category created and is pending approval!")
         setShowForm(false)
         setName("")
         setDescription("")
         setCoverImage(null)
+        setIsPublic(true)
       },
       onError: (err: any) => toast.error(err?.message || "Failed to create category"),
     })
@@ -228,13 +279,60 @@ function UserCategories() {
             />
           </div>
           <div>
-            <label className="text-body-strong block mb-1">Cover Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={e => setCoverImage(e.target.files?.[0] || null)}
-              className="w-full text-body-md text-ink file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-body-sm-strong file:bg-surface-card file:text-ink hover:file:bg-secondary-pressed cursor-pointer"
-            />
+            <label className="text-body-strong block mb-2">Cover Image</label>
+            <div className="relative border-2 border-dashed border-ash rounded-[16px] hover:border-[#e60023] transition-colors overflow-hidden bg-canvas h-48 flex items-center justify-center cursor-pointer group">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setCoverImage(e.target.files?.[0] || null)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              {coverImage ? (
+                <img 
+                  src={URL.createObjectURL(coverImage)} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-surface-card group-hover:bg-[#e60023]/10 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mute group-hover:text-[#e60023] transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </div>
+                  <p className="text-body-strong text-ink">Click or drag and drop</p>
+                  <p className="text-caption-sm text-mute mt-1">SVG, PNG, JPG or GIF</p>
+                </div>
+              )}
+            </div>
+            {coverImage && (
+              <button 
+                type="button" 
+                onClick={() => setCoverImage(null)} 
+                className="mt-2 text-caption-md font-bold text-[#e60023] hover:underline"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => setIsPublic(!isPublic)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isPublic ? "bg-[#e60023]" : "bg-ash"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isPublic ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <div>
+              <span className="text-body-strong block">{isPublic ? "Public" : "Private"}</span>
+              <span className="text-caption-sm text-mute">
+                {isPublic ? "Everyone can view images in this category" : "Requires approval to view"}
+              </span>
+            </div>
           </div>
           <div className="flex justify-end">
             <Button variant="primary" onClick={handleCreate} disabled={creating}>

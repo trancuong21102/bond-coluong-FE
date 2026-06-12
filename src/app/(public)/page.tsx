@@ -3,11 +3,26 @@ import * as React from "react"
 import { useGetPublicCategories, useGetPublicImages, URL_IMAGE, type Category, type ImageModel } from "@/store/api"
 import Link from "next/link"
 import Image from "next/image"
+import { Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import MasonryGrid from "@/components/ui/grid"
 import { ImageCard } from "@/components/pinterest/ImageCard"
+import useAuthStore from "@/lib/store/authStore"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export default function Home() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
+
+  const handleCategoryClick = (e: React.MouseEvent, isPublic: boolean) => {
+    if (!isPublic && !isAuthenticated) {
+      e.preventDefault()
+      toast.error("Vui lòng đăng nhập để xem danh mục riêng tư")
+      router.push("/login")
+    }
+  }
+
   // Fetch categories
   const { data: response, isLoading, isError } = useGetPublicCategories()
   const categories = response?.data ?? []
@@ -80,7 +95,12 @@ console.log(images,'images')
               {categories.slice(0, gridLimit).map((cat: Category) => {
                 const cover = getCategoryCover(cat)
                 return (
-                  <Link key={cat.id} href={`/categories/${cat.slug}`} className="group relative block rounded-[24px] overflow-hidden aspect-[1.8/1] shadow-sm hover:shadow-md transition-all duration-300">
+                  <Link 
+                    key={cat.id} 
+                    href={`/categories/${cat.slug}`} 
+                    onClick={(e) => handleCategoryClick(e, cat.isPublic)}
+                    className="group relative block rounded-[24px] overflow-hidden aspect-[1.8/1] shadow-sm hover:shadow-md transition-all duration-300"
+                  >
                     <Image
                       src={cover}
                       alt={cat.name}
@@ -90,9 +110,14 @@ console.log(images,'images')
                     />
                     {/* Centered Overlay */}
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
-                      <span className="text-on-dark text-body-strong font-bold text-center px-4 transition-transform group-hover:scale-105 duration-200">
-                        {cat.name}
-                      </span>
+                      <div className="flex flex-col items-center gap-2">
+                        {!cat.isPublic && (
+                          <Lock className="w-5 h-5 text-white/80" />
+                        )}
+                        <span className="text-on-dark text-body-strong font-bold text-center px-4 transition-transform group-hover:scale-105 duration-200">
+                          {cat.name}
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 )

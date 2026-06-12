@@ -7,3 +7,4 @@ export * from './userImages';
 export * from './admin';
 export * from './follows';
 export * from './comments';
+export * from './access';
