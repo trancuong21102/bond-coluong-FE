@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get base URL from env or use default
-const baseURL = "https://bond-coluong-api.onrender.com";
+const baseURL = "https://bond-coluong-api.onrender.com/api";
 export const URL_IMAGE = "https://bond-coluong-api.onrender.com";
 export const axiosClient = axios.create({
   baseURL,
