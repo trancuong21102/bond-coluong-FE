@@ -1,5 +1,6 @@
 "use client"
 import * as React from "react"
+import { Suspense } from "react"
 import { useGetPublicCategories, useGetPublicImages, URL_IMAGE, type Category, type ImageModel } from "@/store/api"
 import Link from "next/link"
 import Image from "next/image"
@@ -189,12 +190,12 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <React.Suspense fallback={
+    <Suspense fallback={
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 mt-8 pb-16 text-center py-12">
         <p className="text-body-md text-mute">Loading...</p>
       </main>
     }>
       <HomeContent />
-    </React.Suspense>
+    </Suspense>
   )
 }

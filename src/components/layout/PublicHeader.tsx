@@ -1,5 +1,6 @@
 "use client"
 import * as React from "react"
+import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Check, ChevronDown, Sun, Moon, LayoutDashboard, User, LogOut, Search } from "lucide-react"
@@ -377,7 +378,9 @@ export function PublicHeader() {
           </Link>
         </div>
         <div className="flex-1 mx-2">
-          <SearchInput />
+          <Suspense fallback={<SearchBar placeholder="Search for ideas..." />}>
+            <SearchInput />
+          </Suspense>
         </div>
         <div className="flex items-center gap-3">
           <button
