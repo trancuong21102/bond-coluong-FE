@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { axiosClient } from './axiosClient';
-import { Category, GetPublicImagesQuery, ImageModel, PaginatedResponse } from './types';
+import { Category, GetPublicImagesQuery, ImageModel, PaginatedResponse, SearchSuggestions } from './types';
 
 // API Functions
 const publicApi = {
@@ -22,6 +22,12 @@ const publicApi = {
   
   getImageById: (id: string) => {
     return axiosClient.get<any, { success: boolean; message: string; data: ImageModel }>(`/public/images/${id}`);
+  },
+
+  getSearchSuggestions: (query: string) => {
+    return axiosClient.get<any, { success: boolean; message: string; data: SearchSuggestions }>('/public/search/suggestions', {
+      params: { q: query }
+    });
   }
 };
 
@@ -61,6 +67,15 @@ export const useGetPublicImageById = (id: string) => {
     queryKey: ['public', 'image', id],
     queryFn: () => publicApi.getImageById(id),
     enabled: !!id,
+  });
+};
+
+export const useGetSearchSuggestions = (query: string) => {
+  return useQuery({
+    queryKey: ['public', 'search-suggestions', query],
+    queryFn: () => publicApi.getSearchSuggestions(query),
+    enabled: query.trim().length > 0,
+    staleTime: 1000 * 30, // cache for 30s
   });
 };
 

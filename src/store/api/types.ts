@@ -25,6 +25,12 @@ export interface Category {
   accessList?: { categoryId: number; userId: number }[];
 }
 
+export interface SearchSuggestions {
+  categories: { id: number; name: string; slug: string }[];
+  images: { id: number; title: string }[];
+  users: { id: number; name: string; avatar: string | null }[];
+}
+
 export interface ImageModel {
   id: string;
   title: string;

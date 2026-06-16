@@ -1,10 +1,8 @@
 import axios from 'axios';
 
-// Get base URL from env or use default
-const baseURL = "https://bond-coluong-api.onrender.com/api";
-export const URL_IMAGE = "https://bond-coluong-api.onrender.com";
-// const baseURL = "http://localhost:8386/api";
-// export const URL_IMAGE = "http://localhost:8386";
+const isDev = process.env.NODE_ENV === 'development';
+const baseURL = isDev ? "http://localhost:8386/api" : "https://bond-coluong-api.onrender.com/api";
+export const URL_IMAGE = isDev ? "http://localhost:8386" : "https://bond-coluong-api.onrender.com";
 export const axiosClient = axios.create({
   baseURL,
   headers: {

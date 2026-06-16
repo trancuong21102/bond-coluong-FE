@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button"
 import MasonryGrid from "@/components/ui/grid"
 import { ImageCard } from "@/components/pinterest/ImageCard"
 import useAuthStore from "@/lib/store/authStore"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
+  const searchParams = useSearchParams()
+  const search = searchParams.get("search") || ""
 
   const handleCategoryClick = (e: React.MouseEvent, isPublic: boolean) => {
     if (!isPublic && !isAuthenticated) {
@@ -27,12 +29,13 @@ export default function Home() {
   const { data: response, isLoading, isError } = useGetPublicCategories()
   const categories = response?.data ?? []
 
-  // Fetch latest public images
-  const { data: imagesResponse, isLoading: loadingImgs, isError: errorImgs } = useGetPublicImages({ page: 1, limit: 30 })
+  // Fetch latest public images with search parameter
+  const { data: imagesResponse, isLoading: loadingImgs, isError: errorImgs } = useGetPublicImages({ 
+    page: 1, 
+    limit: 30,
+    search: search || undefined
+  })
   const images = imagesResponse?.data?.images ?? []
-
-  // State to handle "Xem thêm" expansion
-  const [gridLimit, setGridLimit] = React.useState(10)
 
   // Curated high-quality cover images based on category slug if null in backend
   const getCategoryCover = (cat: Category) => {
@@ -72,78 +75,79 @@ export default function Home() {
     }
     return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop"
   }
-console.log(images,'images')
+
   return (
     <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 mt-8 pb-16">
       {/* 2. Grid Section ("Duyệt theo danh mục") */}
-      <div className="mt-4 sm:mt-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-heading-xl text-ink font-bold text-left">
-            Duyệt theo danh mục
-          </h2>
-          <Link href="/categories">
-            <Button variant="tertiary" className="text-ink font-semibold rounded-full px-4 py-2">
-              Xem tất cả
-            </Button>
-          </Link>
-        </div>
-
-        {isLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="bg-surface-card rounded-[24px] aspect-[1.8/1] animate-pulse" />
-            ))}
+      {!search && (
+        <div className="mt-4 sm:mt-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-heading-xl text-ink font-bold text-left">
+              Duyệt theo danh mục
+            </h2>
+            <Link href="/categories">
+              <Button variant="tertiary" className="text-ink font-semibold rounded-full px-4 py-2">
+                Xem tất cả
+              </Button>
+            </Link>
           </div>
-        )}
 
-        {!isLoading && !isError && (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {categories.slice(0, 4).map((cat: Category) => {
-                const cover = getCategoryCover(cat)
-                return (
-                  <Link 
-                    key={cat.id} 
-                    href={`/categories/${cat.slug}`} 
-                    onClick={(e) => handleCategoryClick(e, cat.isPublic)}
-                    className="group relative block rounded-[24px] overflow-hidden aspect-[1.8/1] shadow-sm hover:shadow-md transition-all duration-300"
-                  >
-                    <Image
-                      src={cover}
-                      alt={cat.name}
-                      fill
-                      sizes="(max-width: 640px) calc((100vw - 3rem) / 2), (max-width: 768px) calc((100vw - 4rem) / 3), (max-width: 1024px) calc((100vw - 5rem) / 4), 20vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    {/* Centered Overlay */}
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
-                      <div className="flex flex-col items-center gap-2">
-                        {!cat.isPublic && (
-                          <Lock className="w-5 h-5 text-white/80" />
-                        )}
-                        <span className="text-on-dark text-body-strong font-bold text-center px-4 transition-transform group-hover:scale-105 duration-200">
-                          {cat.name}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
+          {isLoading && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-surface-card rounded-[24px] aspect-[1.8/1] animate-pulse" />
+              ))}
             </div>
+          )}
 
-          </>
-        )}
-      </div>
+          {!isLoading && !isError && (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {categories.slice(0, 4).map((cat: Category) => {
+                  const cover = getCategoryCover(cat)
+                  return (
+                    <Link 
+                      key={cat.id} 
+                      href={`/categories/${cat.slug}`} 
+                      onClick={(e) => handleCategoryClick(e, cat.isPublic)}
+                      className="group relative block rounded-[24px] overflow-hidden aspect-[1.8/1] shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <Image
+                        src={cover}
+                        alt={cat.name}
+                        fill
+                        sizes="(max-width: 640px) calc((100vw - 3rem) / 2), (max-width: 768px) calc((100vw - 4rem) / 3), (max-width: 1024px) calc((100vw - 5rem) / 4), 20vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {/* Centered Overlay */}
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-2">
+                          {!cat.isPublic && (
+                            <Lock className="w-5 h-5 text-white/80" />
+                          )}
+                          <span className="text-on-dark text-body-strong font-bold text-center px-4 transition-transform group-hover:scale-105 duration-200">
+                            {cat.name}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
-      {/* 3. Photos Feed Section ("Xem có gì mới trên Pinterest") */}
+      {/* 3. Photos Feed Section */}
       <div className="mt-16 border-t border-hairline pt-12">
         <h2 className="text-heading-xl text-ink font-bold mb-8 text-left">
-          Xem có gì mới trên Pinterest
+          {search ? `Kết quả tìm kiếm cho "${search}"` : "Xem có gì mới trên Pinterest"}
         </h2>
 
         {loadingImgs && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-surface-card rounded-[16px] animate-pulse" style={{ height: `${200 + (i % 3) * 80}px` }} />
             ))}
           </div>
@@ -154,7 +158,9 @@ console.log(images,'images')
         )}
 
         {!loadingImgs && !errorImgs && images.length === 0 && (
-          <p className="text-center text-body-md text-mute py-12">Chưa có hình ảnh nào mới.</p>
+          <p className="text-center text-body-md text-mute py-12">
+            {search ? `Không tìm thấy hình ảnh nào phù hợp với "${search}".` : "Chưa có hình ảnh nào mới."}
+          </p>
         )}
 
         {!loadingImgs && !errorImgs && images.length > 0 && (
@@ -177,7 +183,18 @@ console.log(images,'images')
           />
         )}
       </div>
-
     </main>
+  )
+}
+
+export default function Home() {
+  return (
+    <React.Suspense fallback={
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 mt-8 pb-16 text-center py-12">
+        <p className="text-body-md text-mute">Loading...</p>
+      </main>
+    }>
+      <HomeContent />
+    </React.Suspense>
   )
 }
