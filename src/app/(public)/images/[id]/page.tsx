@@ -127,7 +127,7 @@ export default function ImageDetailPage({ params }: { params: Promise<{ id: stri
   // Fetch related images from the same category
   const categorySlug = image?.category?.slug ?? ""
   const { data: relatedResponse, isLoading: loadingRelated } = useGetPublicCategoryImages(categorySlug)
-  const relatedImages = (relatedResponse?.data ?? []).filter((img: ImageModel) => img.id !== id)
+  const relatedImages = (relatedResponse?.data ?? []).filter((img: ImageModel) => String(img.id) !== String(id))
   if (isError) notFound()
 
   return (
