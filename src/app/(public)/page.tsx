@@ -77,9 +77,16 @@ console.log(images,'images')
     <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 mt-8 pb-16">
       {/* 2. Grid Section ("Duyệt theo danh mục") */}
       <div className="mt-4 sm:mt-16">
-        <h2 className="text-heading-xl text-ink font-bold mb-8 text-left">
-          Duyệt theo danh mục
-        </h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-heading-xl text-ink font-bold text-left">
+            Duyệt theo danh mục
+          </h2>
+          <Link href="/categories">
+            <Button variant="tertiary" className="text-ink font-semibold rounded-full px-4 py-2">
+              Xem tất cả
+            </Button>
+          </Link>
+        </div>
 
         {isLoading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -124,18 +131,6 @@ console.log(images,'images')
               })}
             </div>
 
-            {categories.length > 4 && (
-              <div className="flex justify-center mt-8">
-                <Link href="/categories">
-                  <Button 
-                    variant="secondary" 
-                    className="rounded-full px-6 py-2 bg-surface-card hover:bg-secondary-pressed text-ink font-bold transition-colors"
-                  >
-                    Xem tất cả
-                  </Button>
-                </Link>
-              </div>
-            )}
           </>
         )}
       </div>
