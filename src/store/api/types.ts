@@ -21,6 +21,8 @@ export interface Category {
   coverImage?: string;
   isPublic: boolean;
   authorId?: string;
+  createdById?: number;
+  accessList?: { categoryId: number; userId: number }[];
 }
 
 export interface ImageModel {

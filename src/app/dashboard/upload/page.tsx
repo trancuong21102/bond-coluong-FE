@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState } from "react"
+import useAuthStore from "@/lib/store/authStore"
 
 const uploadSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
-  categoryId: z.string().min(1, "Please select a category"),
+  categoryId: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0, "Please select a category"),
 })
 
 export default function UploadImagePage() {
@@ -24,7 +25,17 @@ export default function UploadImagePage() {
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const { data: response } = useGetPublicCategories()
+  const user = useAuthStore((state) => state.user)
   const categories = response?.data ?? []
+  
+  const selectableCategories = categories.filter((cat: Category) => {
+    if (cat.isPublic) return true;
+    if (!user) return false;
+    const isOwner = cat.createdById === user.id;
+    const hasAccess = cat.accessList?.some(access => access.userId === user.id);
+    return isOwner || hasAccess;
+  })
+
   const { mutate: upload, isPending } = useUploadImage()
 
   const { register, handleSubmit, control, formState: { errors } } = useForm<z.infer<typeof uploadSchema>>({
@@ -67,7 +78,7 @@ export default function UploadImagePage() {
       return
     }
 
-    upload({ image: file, title: data.title, description: data.description, categoryId: data.categoryId, isPublic: true }, {
+    upload({ image: file, title: data.title, description: data.description, categoryId: String(data.categoryId), isPublic: true }, {
       onSuccess: () => {
         toast.success("Image uploaded! Pending admin approval.")
         router.push("/dashboard/images")
@@ -160,20 +171,21 @@ export default function UploadImagePage() {
                 control={control}
                 name="categoryId"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
                     <SelectTrigger className="w-full h-12 rounded-lg border border-ash bg-surface-card px-4 text-body-md focus:ring-0 focus:outline-none focus:border-[#e60023] hover:border-ink/50 transition-colors cursor-pointer shadow-none">
                       <span className="flex-1 text-left line-clamp-1">
                         {field.value ? (
-                          <span className="text-ink">{categories.find((c: Category) => c.id === field.value)?.name || "Select a category..."}</span>
+                          <span className="text-ink">{selectableCategories.find((c: Category) => String(c.id) === String(field.value))?.name || "Select a category..."}</span>
                         ) : (
                           <span className="text-ash">Select a category...</span>
                         )}
                       </span>
                     </SelectTrigger>
                     <SelectContent className="rounded-lg border border-ash shadow-xl bg-canvas z-[110]">
-                      {categories.map((cat: Category) => (
-                        <SelectItem key={cat.id} value={cat.id} className="cursor-pointer focus:bg-surface-soft hover:bg-surface-soft py-2 px-3 rounded-md mb-1 last:mb-0 transition-colors">
+                      {selectableCategories.map((cat: Category) => (
+                        <SelectItem key={cat.id} value={String(cat.id)} className="cursor-pointer focus:bg-surface-soft hover:bg-surface-soft py-2 px-3 rounded-md mb-1 last:mb-0 transition-colors">
                           {cat.name}
+                          {!cat.isPublic && <span className="ml-2 text-mute text-xs">(Private)</span>}
                         </SelectItem>
                       ))}
                     </SelectContent>

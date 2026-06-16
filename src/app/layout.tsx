@@ -22,6 +22,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn("h-full", "antialiased", "dark", "font-sans", geist.variable)}
+      suppressHydrationWarning
     >
       <head>
         <script
